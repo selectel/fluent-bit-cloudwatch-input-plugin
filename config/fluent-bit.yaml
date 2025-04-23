@@ -1,0 +1,24 @@
+service:
+  log_level: debug
+
+pipeline:
+  inputs:
+    - name: cloudwatch-input
+      region: us-east-1
+      endpoint: https://logs.us-east-1.amazonaws.com
+      log_group_name: my-group-name
+      log_stream_name: my-stream-name
+      sqlite_path: /var/lib/fluent-bit/cloudwatch/sqlite/db.sqlite
+
+  filters:
+    - name: lua
+      match: '*'
+      call: split_events
+      code: |
+        function split_events(tag, timestamp, record)
+          return 2, timestamp, record["events"]
+        end
+
+  outputs:
+    - name: stdout
+      match: '*'
